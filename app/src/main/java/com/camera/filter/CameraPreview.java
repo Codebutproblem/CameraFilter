@@ -363,7 +363,7 @@ public class CameraPreview {
         return shader;
     }
 
-    public void draw(int textureId, float[] mvpMatrix){
+    public void draw(float[] mvpMatrix){
 
         GLES20.glUseProgram(program);
 

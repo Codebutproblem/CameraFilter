@@ -77,6 +77,7 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, overlayTextureId);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
@@ -97,7 +98,7 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
             });
         });
 
-        overlayPreview = new OverlayPreview(context);
+        overlayPreview = new OverlayPreview();
 
         handler.post(() -> {
             if (surfaceReadyListener != null) {
@@ -135,7 +136,7 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
 
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
-        cameraPreview.draw(textureId, vPMatrix);
+        cameraPreview.draw(vPMatrix);
 
 
         if(applyOverlay && overLayPath != null){
@@ -144,7 +145,7 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
             applyOverlay = false;
         }
         if(overLayPath != null){
-            overlayPreview.draw(overlayTextureId, vPMatrix);
+            overlayPreview.draw(vPMatrix);
         }
 
 
@@ -207,28 +208,6 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
 
     public void updateCameraDirection(boolean isFrontCamera) {
         cameraPreview.updateCameraDirection(isFrontCamera);
-    }
-
-    private int loadTexture(String assetPath) {
-        int[] texturesIds = new int[1];
-
-        GLES20.glGenTextures(1, texturesIds, 0);
-
-        if (texturesIds[0] != 0) {
-            try {
-                // Load bitmap từ assets
-                InputStream inputStream = context.getAssets().open(assetPath);
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                inputStream.close();
-
-                bitmap.recycle();
-
-            } catch (IOException e) {
-                throw new RuntimeException("Error loading texture from assets: " + assetPath, e);
-            }
-        }
-
-        return texturesIds[0];
     }
 
     private Bitmap loadBitmap(String assetPath) {

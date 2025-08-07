@@ -15,10 +15,7 @@ import java.nio.FloatBuffer;
 
 public class OverlayPreview {
 
-    private Context context;
-
-    public OverlayPreview(Context context) {
-        this.context = context;
+    public OverlayPreview() {
         vertexBuffer = ByteBuffer.allocateDirect(vertices.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
@@ -36,7 +33,6 @@ public class OverlayPreview {
         positionHandle = GLES20.glGetAttribLocation(program, "aPosition");
         textureHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
         mvpMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
-        samplerHandle = GLES20.glGetUniformLocation(program, "sTexture");
     }
 
     private FloatBuffer vertexBuffer;
@@ -62,7 +58,6 @@ public class OverlayPreview {
     private int positionHandle = 0;
     private int textureHandle = 0;
     private int mvpMatrixHandle = 0;
-    private int samplerHandle = 0;
 
 
     private String vertexShaderCode =
@@ -106,22 +101,21 @@ public class OverlayPreview {
         return shader;
     }
 
-    public void draw(int textureId, float[] mvpMatrix){
+    public void draw(float[] mvpMatrix) {
 
         GLES20.glUseProgram(program);
 
         // Set vertex attributes
+        GLES20.glEnableVertexAttribArray(positionHandle);
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+        GLES20.glEnableVertexAttribArray(textureHandle);
         GLES20.glVertexAttribPointer(textureHandle, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
 
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);
 
-        GLES20.glEnableVertexAttribArray(positionHandle);
-        GLES20.glEnableVertexAttribArray(textureHandle);
-
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
-        GLES20.glDisableVertexAttribArray(0);
-        GLES20.glDisableVertexAttribArray(1);
+        GLES20.glDisableVertexAttribArray(positionHandle);
+        GLES20.glDisableVertexAttribArray(textureHandle);
     }
 }
