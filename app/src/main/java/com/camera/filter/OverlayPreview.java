@@ -108,53 +108,20 @@ public class OverlayPreview {
 
     public void draw(int textureId, float[] mvpMatrix){
 
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
         GLES20.glUseProgram(program);
 
         // Set vertex attributes
-        GLES20.glVertexAttribPointer(0, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
-        GLES20.glVertexAttribPointer(1, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
+        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+        GLES20.glVertexAttribPointer(textureHandle, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
 
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);
 
-        GLES20.glEnableVertexAttribArray(0);
-        GLES20.glEnableVertexAttribArray(1);
+        GLES20.glEnableVertexAttribArray(positionHandle);
+        GLES20.glEnableVertexAttribArray(textureHandle);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
         GLES20.glDisableVertexAttribArray(0);
         GLES20.glDisableVertexAttribArray(1);
-    }
-
-    private int loadTexture(String assetPath) {
-        int[] textureHandle = new int[1];
-
-        GLES20.glGenTextures(1, textureHandle, 0);
-
-        if (textureHandle[0] != 0) {
-            try {
-                // Load bitmap từ assets
-                InputStream inputStream = context.getAssets().open(assetPath);
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                inputStream.close();
-
-                // Bind texture
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
-
-                // Set filter parameters
-                GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-                GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-
-                // Load bitmap vào texture
-                GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-
-                bitmap.recycle();
-
-            } catch (IOException e) {
-                throw new RuntimeException("Error loading texture from assets: " + assetPath, e);
-            }
-        }
-
-        return textureHandle[0];
     }
 }

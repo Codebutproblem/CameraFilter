@@ -30,7 +30,16 @@
         tools:listitem="@layout/filter_item"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         android:orientation="horizontal"
-        android:layout_marginVertical="20dp"/>
+        android:layout_marginVertical="10dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:listitem="@layout/overlay_item"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:orientation="horizontal"
+        android:layout_marginVertical="10dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -66,14 +75,6 @@
             />
 
     </LinearLayout>
-
-    <Button
-        android:id="@+id/btn_overlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="On/off overlay"
-        android:layout_marginBottom="10dp"
-        />
 
 
 

@@ -35,7 +35,6 @@ public class CameraPreview {
     private int positionHandle = 0;
     private int textureHandle = 0;
     private int mvpMatrixHandle = 0;
-    private int samplerHandle = 0;
 
     private int filterTypeHandle = 0;
 
@@ -341,7 +340,6 @@ public class CameraPreview {
         positionHandle = GLES20.glGetAttribLocation(program, "aPosition");
         textureHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
         mvpMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
-        samplerHandle = GLES20.glGetUniformLocation(program, "sTexture");
         filterTypeHandle = GLES20.glGetUniformLocation(program, "filterType");
     }
 
@@ -379,11 +377,6 @@ public class CameraPreview {
 
         // Set uniforms
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);
-
-        // Bind texture
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
-        GLES20.glUniform1i(samplerHandle, 0);
 
         // Draw
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);

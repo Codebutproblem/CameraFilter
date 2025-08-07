@@ -65,16 +65,23 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
     private CameraPreview cameraPreview;
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        int[] textures = new int[1];
-        GLES20.glGenTextures(1, textures, 0);
+        int[] textures = new int[2];
+        GLES20.glGenTextures(2, textures, 0);
         textureId = textures[0];
+        overlayTextureId = textures[1];
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, overlayTextureId);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         surfaceTexture = new SurfaceTexture(textureId);
 
         cameraPreview = new CameraPreview();
@@ -108,7 +115,9 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
     }
 
-    private boolean applyOverlay = true;
+    private boolean applyOverlay = false;
+
+    private String overLayPath;
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -129,14 +138,12 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         cameraPreview.draw(textureId, vPMatrix);
 
 
-        if(applyOverlay){
-            overlayTextureId = loadTexture("scratch/scratch1.png");
+        if(applyOverlay && overLayPath != null){
+            Bitmap overlayBitmap = loadBitmap(overLayPath);
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, overlayBitmap, 0);
             applyOverlay = false;
         }
-        if(overlayTextureId != 0) {
-            GLES20.glEnable(GLES20.GL_BLEND);
-            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
+        if(overLayPath != null){
             overlayPreview.draw(overlayTextureId, vPMatrix);
         }
 
@@ -214,16 +221,6 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 inputStream.close();
 
-                // Bind texture
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texturesIds[0]);
-
-                // Set filter parameters
-                GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-                GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-
-                // Load bitmap vào texture
-                GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-
                 bitmap.recycle();
 
             } catch (IOException e) {
@@ -232,5 +229,26 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         }
 
         return texturesIds[0];
+    }
+
+    private Bitmap loadBitmap(String assetPath) {
+        try {
+            InputStream inputStream = context.getAssets().open(assetPath);
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+            return bitmap;
+        } catch (IOException e) {
+            throw new RuntimeException("Error loading bitmap from assets: " + assetPath, e);
+        }
+    }
+
+    public void setOverlay(String overLayPath) {
+        applyOverlay = true;
+        this.overLayPath = overLayPath;
+    }
+
+    public void clearOverlay() {
+        applyOverlay = false;
+        overLayPath = null;
     }
 }

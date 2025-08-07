@@ -34,8 +34,19 @@ public class MainActivity extends AppCompatActivity {
 
     private Camera camera;
 
-    private RecyclerView filterRecyclerView;
+    private RecyclerView filterRecyclerView, overlayRecyclerView;
     private FilterAdapter filterAdapter;
+
+    private OverlayAdapter overlayAdapter;
+
+    private List<Overlay> overlays = List.of(
+            new Overlay(0, null),
+            new Overlay(1, "scratch/scratch1.png"),
+            new Overlay(2, "scratch/scratch2.png"),
+            new Overlay(3, "scratch/scratch3.png"),
+            new Overlay(4, "scratch/scratch4.png"),
+            new Overlay(5, "scratch/scratch5.png")
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         btnCapture = findViewById(R.id.btn_capture);
         filterRecyclerView = findViewById(R.id.rv_filter);
         btnRotate = findViewById(R.id.btn_rotate);
+        overlayRecyclerView = findViewById(R.id.rv_overlay);
 
         cameraGLRenderer = new CameraGLRenderer(this);
         cameraGLSurfaceView.setCameraGLRenderer(cameraGLRenderer);
@@ -56,6 +68,19 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         filterRecyclerView.setLayoutManager(layoutManager);
         filterRecyclerView.setAdapter(filterAdapter);
+
+
+        overlayAdapter = new OverlayAdapter(overlays, overlay -> {
+            if(overlay.getId() == 0){
+                cameraGLRenderer.clearOverlay();
+            }else{
+                cameraGLRenderer.setOverlay(overlay.getImagePath());
+            }
+            cameraGLSurfaceView.requestRender();
+        });
+        LinearLayoutManager overlayLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        overlayRecyclerView.setLayoutManager(overlayLayoutManager);
+        overlayRecyclerView.setAdapter(overlayAdapter);
 
 
         progressDialog = new ProgressDialog(this);
