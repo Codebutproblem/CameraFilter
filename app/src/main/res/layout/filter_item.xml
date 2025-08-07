@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:gravity="center"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:layout_marginEnd="10dp">
+
+    <ImageView
+        android:id="@+id/iv_filter_preview"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:scaleType="centerCrop"
+        android:background="#FF9800"
+        android:src="@android:drawable/ic_input_add" />
+
+    <TextView
+        android:id="@+id/tv_filter_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Filter Name"
+        android:textSize="12sp"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <View
+        android:id="@+id/view_selected_indicator"
+        android:layout_width="60dp"
+        android:layout_height="2dp"
+        android:layout_marginTop="2dp"
+        android:background="@color/material_dynamic_primary0"
+        android:visibility="gone" />
+
+</LinearLayout>
