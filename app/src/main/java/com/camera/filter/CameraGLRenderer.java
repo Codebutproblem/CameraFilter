@@ -113,7 +113,11 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         this.height = height;
         GLES20.glViewport(0, 0, width, height);
         float ratio = (float) width / height;
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+        if(ratio > 1.0f){
+            Matrix.frustumM(projectionMatrix, 0, -1, 1, -1.0f / ratio, 1.0f / ratio, 3, 7);
+        } else {
+            Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+        }
     }
 
     private boolean applyOverlay = false;
@@ -132,7 +136,12 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-        Matrix.setLookAtM(viewMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        if(isFrontCamera){
+            Matrix.setLookAtM(viewMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, -1.0f, 0.0f);
+        }else{
+            Matrix.setLookAtM(viewMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        }
+
 
         Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
 
@@ -206,8 +215,11 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         cameraPreview.setFilterType(filterType);
     }
 
-    public void updateCameraDirection(boolean isFrontCamera) {
-        cameraPreview.updateCameraDirection(isFrontCamera);
+
+    private boolean isFrontCamera = false;
+
+    public void setFrontCamera(boolean frontCamera) {
+        isFrontCamera = frontCamera;
     }
 
     private Bitmap loadBitmap(String assetPath) {
@@ -229,5 +241,9 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
     public void clearOverlay() {
         applyOverlay = false;
         overLayPath = null;
+    }
+
+    public void setAlpha(float alpha) {
+        overlayPreview.setAlpha(alpha);
     }
 }

@@ -167,8 +167,4 @@ public class Camera{
 
         return null;
     }
-
-    public boolean isFrontCamera() {
-        return isFrontCamera;
-    }
 }

@@ -33,12 +33,15 @@ public class OverlayPreview {
         positionHandle = GLES20.glGetAttribLocation(program, "aPosition");
         textureHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
         mvpMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
+        alphaHandle = GLES20.glGetUniformLocation(program, "uAlpha");
     }
 
     private FloatBuffer vertexBuffer;
     private FloatBuffer textureBuffer;
 
     private int program;
+
+    private float alpha = 1.0f;
 
     // Vertex coordinates
     private float[] vertices = {
@@ -58,6 +61,7 @@ public class OverlayPreview {
     private int positionHandle = 0;
     private int textureHandle = 0;
     private int mvpMatrixHandle = 0;
+    private int alphaHandle = 0;
 
 
     private String vertexShaderCode =
@@ -75,9 +79,11 @@ public class OverlayPreview {
             "precision mediump float;\n" +
                     "varying vec2 vTextureCoord;\n" +
                     "uniform sampler2D uTexture;\n" +
+                    "uniform float uAlpha;\n" +
                     "\n" +
                     "void main() {\n" +
-                    "    gl_FragColor = texture2D(uTexture, vTextureCoord);\n" +
+                    "    vec4 textureColor = texture2D(uTexture, vTextureCoord);\n" +
+                    "    gl_FragColor = vec4(textureColor.rgb, textureColor.a * uAlpha);\n" +
                     "}\n";
 
 
@@ -113,9 +119,15 @@ public class OverlayPreview {
 
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);
 
+        GLES20.glUniform1f(alphaHandle, alpha);
+
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
         GLES20.glDisableVertexAttribArray(positionHandle);
         GLES20.glDisableVertexAttribArray(textureHandle);
+    }
+
+    public void setAlpha(float alpha) {
+        this.alpha = alpha;
     }
 }

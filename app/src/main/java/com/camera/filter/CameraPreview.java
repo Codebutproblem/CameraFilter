@@ -1,13 +1,10 @@
 package com.camera.filter;
 
-import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-
-import javax.microedition.khronos.opengles.GL;
 
 public class CameraPreview {
 
@@ -18,19 +15,9 @@ public class CameraPreview {
     private int program;
 
     // Vertex coordinates
-    private float[] vertices = {
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            -1.0f,  1.0f, 0.0f,
-            1.0f,  1.0f, 0.0f
-    };
+    private float[] vertices;
 
-    private float[] textureCoords = {
-            1.0f, 1.0f,  // Bottom-right -> Top-left
-            1.0f, 0.0f,  // Top-right -> Bottom-left
-            0.0f, 1.0f,  // Bottom-left -> Top-right
-            0.0f, 0.0f   // Top-left -> Bottom-right
-    };
+    private float[] textureCoords;
 
     private int positionHandle = 0;
     private int textureHandle = 0;
@@ -323,6 +310,21 @@ public class CameraPreview {
                     "}";
 
     public CameraPreview() {
+
+        vertices = new float[] {
+                -1.0f, -1.0f, 0.0f,
+                1.0f, -1.0f, 0.0f,
+                -1.0f,  1.0f, 0.0f,
+                1.0f,  1.0f, 0.0f
+        };
+
+        textureCoords = new float[]  {
+                1.0f, 1.0f,  // Bottom-right -> Top-left
+                1.0f, 0.0f,  // Top-right -> Bottom-left
+                0.0f, 1.0f,  // Bottom-left -> Top-right
+                0.0f, 0.0f   // Top-left -> Bottom-right
+        };
+
         vertexBuffer = ByteBuffer.allocateDirect(vertices.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
@@ -389,27 +391,5 @@ public class CameraPreview {
 
     public void setFilterType(FilterType filterType) {
         this.currentFilterType = filterType.getFilterType();
-    }
-
-    public void updateCameraDirection(boolean isFrontCamera) {
-        if(isFrontCamera){
-            textureCoords = new float[] {
-                    0.0f, 1.0f,  // Bottom-right -> Top-left
-                    0.0f, 0.0f,  // Top-right -> Bottom-left
-                    1.0f, 1.0f,  // Bottom-left -> Top-right
-                    1.0f, 0.0f   // Top-left -> Bottom-right
-            };
-        }else{
-            textureCoords = new float[] {
-                    1.0f, 1.0f,  // Bottom-right -> Top-left
-                    1.0f, 0.0f,  // Top-right -> Bottom-left
-                    0.0f, 1.0f,  // Bottom-left -> Top-right
-                    0.0f, 0.0f   // Top-left -> Bottom-right
-            };
-        }
-
-        textureBuffer.clear();
-        textureBuffer.put(textureCoords);
-        textureBuffer.position(0);
     }
 }
