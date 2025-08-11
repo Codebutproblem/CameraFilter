@@ -15,6 +15,7 @@ import android.os.Looper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.IntBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -32,15 +33,14 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
     private final float[] viewMatrix = new float[16];
     private SurfaceTexture surfaceTexture;
     private int textureId = 0;
-    private boolean updateSurface = false;
-    private final Object updateLock = new Object();
+    private AtomicBoolean updateSurface = new AtomicBoolean(false);
     private FrameAvailableListener frameAvailableListener;
 
     private SurfaceReadyListener surfaceReadyListener;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private boolean captureNextFrame = false;
+    private AtomicBoolean captureNextFrame = new AtomicBoolean(false);
 
     private CaptureListener captureListener;
 
@@ -71,13 +71,14 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         overlayTextureId = textures[1];
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
         GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
         GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
         GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, overlayTextureId);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
@@ -88,9 +89,7 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         cameraPreview = new CameraPreview();
 
         surfaceTexture.setOnFrameAvailableListener(surfaceTexture -> {
-            synchronized (updateLock){
-                updateSurface = true;
-            }
+            updateSurface.set(true);
             handler.post(()-> {
                 if (frameAvailableListener != null) {
                     frameAvailableListener.onFrameAvailable(surfaceTexture);
@@ -120,23 +119,20 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    private boolean applyOverlay = false;
+    private volatile boolean applyOverlay = false;
 
-    private String overLayPath;
+    private volatile String overLayPath;
 
     @Override
     public void onDrawFrame(GL10 gl) {
 
-        synchronized(updateLock) {
-            if (updateSurface) {
-                surfaceTexture.updateTexImage();
-                updateSurface = false;
-            }
+        if (updateSurface.compareAndSet(true, false)) {
+            surfaceTexture.updateTexImage();
         }
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-        if(isFrontCamera){
+        if(isFrontCamera.get()){
             Matrix.setLookAtM(viewMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, -1.0f, 0.0f);
         }else{
             Matrix.setLookAtM(viewMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
@@ -158,8 +154,7 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
         }
 
 
-        if(captureNextFrame){
-            captureNextFrame = false;
+        if(captureNextFrame.compareAndSet(true, false)){
             captureBitmap();
         }
 
@@ -196,7 +191,7 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
     }
 
     public void requestCapture(CaptureListener captureListener) {
-        captureNextFrame = true;
+        captureNextFrame.set(true);
         this.captureListener = captureListener;
     }
 
@@ -216,10 +211,10 @@ public class CameraGLRenderer implements GLSurfaceView.Renderer {
     }
 
 
-    private boolean isFrontCamera = false;
+    private AtomicBoolean isFrontCamera = new AtomicBoolean(false);
 
     public void setFrontCamera(boolean frontCamera) {
-        isFrontCamera = frontCamera;
+        isFrontCamera.set(frontCamera);
     }
 
     private Bitmap loadBitmap(String assetPath) {
